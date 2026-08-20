@@ -1,0 +1,20 @@
+services:
+  'db':
+    image: postgres:16
+    ports: 
+    - "5432:5432"
+    environment:
+      POSTGRES_USER: inv
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: inventory
+    volumes: 
+    - db_data:/var/lib/postgresql/data
+    - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inv -d inventory"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db_data:
