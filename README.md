@@ -1,2 +1,3 @@
-﻿# Stockpile-Inventory-Drop-Reservation-Platform
+﻿# StockDrop 
+- Inventory Drop Reservation Platform
  
