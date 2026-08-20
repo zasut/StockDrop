@@ -36,4 +36,29 @@ CREATE TABLE sale_lines (
     PRIMARY KEY(ticket_id, line_no)
 );
 
+CREATE TYPE movement_t AS ENUM (
+    'sale', 'return', 'transfer_out', 'transfer_in',
+    'receipt', 'adjustment', 'shrinkage'
+);
+
+CREATE TABLE inventory_movements (
+    movement_id    BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    sku            TEXT NOT NULL REFERENCES products(sku),
+    location_id    TEXT NOT NULL REFERENCES locations(location_id),
+    quantity_delta INT  NOT NULL CHECK (quantity_delta <> 0),
+    type           movement_t NOT NULL,
+    reference_id   TEXT NOT NULL,
+    occurred_at    TIMESTAMPTZ NOT NULL,
+    recorded_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Requirement 3: replay safety.
+CREATE UNIQUE INDEX inventory_movements_natural_key
+    ON inventory_movements (type, reference_id, sku, location_id);
+
+-- Stock lookups scan by sku+location constantly. Without this, every
+-- on-hand query is a full table scan.
+CREATE INDEX inventory_movements_stock_lookup
+    ON inventory_movements (sku, location_id, occurred_at);
+
 COMMIT;
