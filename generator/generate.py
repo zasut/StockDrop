@@ -1,8 +1,7 @@
 import csv
 import os
 import random 
-from datetime import datetime
-from datetime import date
+from datetime import datetime, date, time, timedelta
 
 data_dir = "data/"
 location_path = os.path.join(data_dir, "locations.csv")
@@ -48,15 +47,18 @@ with open(products_path, "w", newline="") as f:
     writer.writerow(["sku", "name", "category", "unit_price", "unit_cost"])
     writer.writerows(formatted)
 
-def make_ticket(ticket_id, rng):
+def make_ticket(ticket_id, day, rng):
     rows = []
 
     location = rng.choice(store_locations)
     location_id = location[0]
 
+    hour = rng.randint(8, 18) # within "store-hours"
+    minute = rng.randint(0, 59)
+
     channel = "in_store"
-    sold_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    recorded_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    sold_at = datetime.combine(day, time(hour, minute))
+    recorded_at = sold_at + timedelta(minutes=rng.randint(1, 90))
     transaction_type = "sale"
 
     num_items = rng.randint(1, 3)
@@ -70,29 +72,28 @@ def make_ticket(ticket_id, rng):
         discount = 0.00
         line_total = unit_price * quantity
         
-        rows.append([ticket_id, line_no, location_id, channel, sku, product_name, quantity, unit_price, discount, line_total, sold_at, recorded_at, transaction_type])
+        rows.append([ticket_id, line_no, location_id, channel, sku, product_name, quantity, unit_price, discount, line_total, sold_at.isoformat(), recorded_at.isoformat(), transaction_type])
     return rows
 
-def make_day(date, num_tickets, rng):
+def make_day(day, num_tickets, rng):
     rows = []
     
     for i in range(1, num_tickets +1):
-        ticket_id = f"T-{date.strftime('%Y%m%d')}-{i:04d}"
-        rows.extend(make_ticket(ticket_id, rng))   
+        ticket_id = f"T-{day.strftime('%Y%m%d')}-{i:04d}"
+        rows.extend(make_ticket(ticket_id, day, rng))   
     return rows 
 
 
+def mock_sales(day, num_tickets, rng): 
 
-def mock_sales(date, num_tickets, rng): 
-
-    sales_path = os.path.join(data_dir, f"sales_{date.isoformat()}.csv")
+    sales_path = os.path.join(data_dir, f"sales_{day.isoformat()}.csv")
    
     with open(sales_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["ticket_id", "line_no", "location_id", "channel", "sku", "product_name",
  "quantity", "unit_price", "discount", "line_total", "sold_at",
  "recorded_at", "transaction_type"])
-        writer.writerows(make_day(date, num_tickets, rng))
+        writer.writerows(make_day(day, num_tickets, rng))
 
 
 rng = random.Random(42)
