@@ -2,6 +2,7 @@ import csv
 import os
 import random 
 from datetime import datetime
+from datetime import date
 
 data_dir = "data/"
 location_path = os.path.join(data_dir, "locations.csv")
@@ -71,3 +72,28 @@ def make_ticket(ticket_id, rng):
         
         rows.append([ticket_id, line_no, location_id, channel, sku, product_name, quantity, unit_price, discount, line_total, sold_at, recorded_at, transaction_type])
     return rows
+
+def make_day(date, num_tickets, rng):
+    rows = []
+    
+    for i in range(1, num_tickets +1):
+        ticket_id = f"T-{date.strftime('%Y%m%d')}-{i:04d}"
+        rows.extend(make_ticket(ticket_id, rng))   
+    return rows 
+
+
+
+def mock_sales(date, num_tickets, rng): 
+
+    sales_path = os.path.join(data_dir, f"sales_{date.isoformat()}.csv")
+   
+    with open(sales_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["ticket_id", "line_no", "location_id", "channel", "sku", "product_name",
+ "quantity", "unit_price", "discount", "line_total", "sold_at",
+ "recorded_at", "transaction_type"])
+        writer.writerows(make_day(date, num_tickets, rng))
+
+
+rng = random.Random(42)
+mock_sales(date(2025, 1, 1), 5, rng)
