@@ -62,9 +62,9 @@ def make_ticket(ticket_id, day, rng):
     transaction_type = "sale"
 
     num_items = rng.randint(1, 3)
+    chosen = rng.sample(products, num_items)
 
-    for line_no in range(1, num_items + 1):
-        product = rng.choice(products)
+    for line_no, product in enumerate(chosen, start=1):
         quantity = rng.randint(1, 3)
         sku = product[0]
         product_name = product[1]
@@ -72,7 +72,7 @@ def make_ticket(ticket_id, day, rng):
         discount = 0.00
         line_total = unit_price * quantity
         
-        rows.append([ticket_id, line_no, location_id, channel, sku, product_name, quantity, unit_price, discount, line_total, sold_at.isoformat(), recorded_at.isoformat(), transaction_type])
+        rows.append([ticket_id, line_no, location_id, channel, sku, product_name, quantity, f"{unit_price:.2f}", discount, f"{line_total:.2f}", sold_at.isoformat(), recorded_at.isoformat(), transaction_type])
     return rows
 
 def make_day(day, num_tickets, rng):
@@ -96,5 +96,8 @@ def mock_sales(day, num_tickets, rng):
         writer.writerows(make_day(day, num_tickets, rng))
 
 
-rng = random.Random(42)
-mock_sales(date(2025, 1, 1), 5, rng)
+rng = random.Random(365)
+start = date(2025, 1, 1)
+for i in range(5):
+    day = start + timedelta(days=i)
+    mock_sales(day, 5, rng)
