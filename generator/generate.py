@@ -2,10 +2,12 @@ import csv
 import os
 import random 
 from datetime import datetime, date, time, timedelta
+import glob
 
 data_dir = "data/"
 location_path = os.path.join(data_dir, "locations.csv")
 products_path = os.path.join(data_dir, "products.csv")
+old_files = glob.glob(os.path.join(data_dir, "sales_*.csv"))
 
 os.makedirs(data_dir, exist_ok=True)
 
@@ -96,7 +98,17 @@ def mock_sales(day, num_tickets, rng):
         writer.writerows(make_day(day, num_tickets, rng))
 
 
-rng = random.Random(365)
+print("~~ removing old sales data ~~")
+# Does not generate new seeds/data
+if not old_files:
+    print("No old sales data to remove")
+else:
+    for old in old_files:
+        os.remove(old)
+    print(f"Removed {len(old_files)} old sales files")
+
+# Change the value to change the seed. If it's the same it will generate the same data.
+rng = random.Random(12)
 start = date(2025, 1, 1)
 for i in range(5):
     day = start + timedelta(days=i)
